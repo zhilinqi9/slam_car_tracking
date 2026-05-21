@@ -139,7 +139,7 @@ roslaunch rtabmap_ros rtabmap.launch \
     cloud_subtract_filtering:=true
 ```
 
-启动后 RTAB-Map ROS GUI 显示 **Loop Closure Detection**、**Odometry**、**3D Map** 三大面板，新关键帧入库时左上角实时刷新 `New ID = N`，3D Map 面板中稠密点云持续累积（建图过程示例见设计报告 3.3.3 节图 8）。
+启动后 RTAB-Map ROS GUI 显示 **Loop Closure Detection**、**Odometry**、**3D Map** 三大面板，新关键帧入库时左上角实时刷新 `New ID = N`，3D Map 面板中稠密点云持续累积。
 
 保存地图（关 RTAB-Map 前必须执行）：
 ```bash
