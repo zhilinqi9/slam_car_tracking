@@ -1,0 +1,24 @@
+<launch>
+  <!-- 1) 原始轮式里程计:发到 /odom_raw,不发 TF -->
+  <node pkg="fw_odom_publisher" type="odom_publisher.py"
+        name="fw_odom_publisher" output="screen">
+    <param name="odom_frame"         value="odom"/>
+    <param name="base_frame"         value="base_link"/>
+    <param name="angular_in_degrees" value="true"/>
+    <param name="publish_tf"         value="false"/>
+    <remap from="/odom" to="/odom_raw"/>
+  </node>
+
+  <!-- 2) EKF 融合 轮式 + OAK IMU,输出 /odom 和 odom->base_link TF -->
+  <node pkg="robot_localization" type="ekf_localization_node"
+        name="ekf_odom_node" output="screen" clear_params="true">
+    <rosparam command="load"
+              file="$(find fw_odom_publisher)/config/ekf_odom.yaml"/>
+    <remap from="odometry/filtered" to="odom"/>
+  </node>
+
+  <!-- 3) OAK 在小车上的安装位置 -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_oak"
+        args="0.29 0 0.6 0 0 0 base_link oak-d-base-frame"/>
+
+</launch>

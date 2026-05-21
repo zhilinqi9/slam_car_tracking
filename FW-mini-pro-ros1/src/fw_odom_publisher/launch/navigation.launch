@@ -1,0 +1,60 @@
+<launch>
+  <!-- 参数 -->
+  <arg name="map_file"      default="$(env HOME)/maps/grid_map.yaml"/>
+  <arg name="rtabmap_db"    default="$(env HOME)/maps/site_A.db"/>
+  <arg name="open_rviz"     default="true"/>
+
+  <!-- 1. 加载 2D 静态地图 -->
+  <node pkg="map_server" type="map_server" name="map_server"
+        args="$(arg map_file)"/>
+
+  <!-- 2. RTAB-Map 定位模式(同时提供 map->odom 修正) -->
+  <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
+    <arg name="localization"      value="true"/>
+    <arg name="database_path"     value="$(arg rtabmap_db)"/>
+    <arg name="rgb_topic"         value="/stereo_inertial_publisher/color/image"/>
+    <arg name="depth_topic"       value="/stereo_inertial_publisher/stereo/depth"/>
+    <arg name="camera_info_topic" value="/stereo_inertial_publisher/color/camera_info"/>
+    <arg name="approx_sync"       value="true"/>
+    <arg name="queue_size"        value="30"/>
+    <arg name="frame_id"          value="base_link"/>
+    <arg name="odom_topic"        value="/odom"/>
+    <arg name="rtabmap_viz"       value="false"/>
+    <arg name="rviz"              value="false"/>
+    <arg name="args"              value="--Vis/MaxDepth 2.0
+                                        --Vis/MinDepth 0.3
+                                        --Grid/RangeMax 2.0
+                                        --Reg/Force3DoF true"/>
+  </include>
+
+  <!-- 3. move_base -->
+  <node pkg="move_base" type="move_base" respawn="false"
+        name="move_base" output="screen">
+    <rosparam file="$(find fw_odom_publisher)/config/costmap_common_params.yaml"
+              command="load" ns="global_costmap"/>
+    <rosparam file="$(find fw_odom_publisher)/config/costmap_common_params.yaml"
+              command="load" ns="local_costmap"/>
+    <rosparam file="$(find fw_odom_publisher)/config/local_costmap_params.yaml"
+              command="load"/>
+    <rosparam file="$(find fw_odom_publisher)/config/global_costmap_params.yaml"
+              command="load"/>
+    <rosparam file="$(find fw_odom_publisher)/config/dwa_local_planner_params.yaml"
+              command="load"/>
+    <rosparam file="$(find fw_odom_publisher)/config/move_base_params.yaml"
+              command="load"/>
+  </node>
+
+  <!-- 4. cmd_vel -> ctrl_cmd 桥接 -->
+  <node pkg="fw_odom_publisher" type="cmd_vel_to_ctrl_cmd.py"
+        name="cmd_vel_bridge" output="screen">
+    <param name="angular_in_degrees" value="true"/>
+    <param name="gear_forward"       value="6"/>
+    <param name="gear_reverse"       value="6"/>
+    <param name="gear_park"          value="0"/>
+  </node>
+
+  <!-- 5. RViz -->
+  <node if="$(arg open_rviz)"
+        pkg="rviz" type="rviz" name="rviz"
+        args="-d $(find fw_odom_publisher)/launch/nav_view.rviz"/>
+</launch>

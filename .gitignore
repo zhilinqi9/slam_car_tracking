@@ -1,0 +1,25 @@
+# ===== 体积过大 / 第三方，不上传到仓库 =====
+*.zip
+ORB_SLAM3/Vocabulary/ORBvoc.txt
+
+# ===== 个人与申请材料（含个人信息），不公开 =====
+*.docx
+*.pptx
+*.pdf
+STARLAB_项目介绍.md
+
+# ===== 本地生成脚本 =====
+_build_resume.py
+_build_prep.py
+
+# ===== catkin 编译产物 =====
+FW-mini-pro-ros1/build/
+FW-mini-pro-ros1/devel/
+FW-mini-pro-ros1/.catkin_workspace
+**/__pycache__/
+*.pyc
+
+# ===== 系统/编辑器 =====
+.DS_Store
+Thumbs.db
+*~

@@ -1,0 +1,63 @@
+Panels:
+  - Class: rviz/Displays
+    Help Height: 0
+    Name: Displays
+  - Class: rviz/Tool Properties
+    Name: Tool Properties
+
+Visualization Manager:
+  Displays:
+    - Class: rviz/Grid
+      Name: Grid
+      Enabled: true
+    - Class: rviz/TF
+      Name: TF
+      Enabled: true
+    - Class: rviz/Map
+      Name: Map
+      Topic: /map
+      Enabled: true
+    - Class: rviz/Map
+      Name: GlobalCostmap
+      Topic: /move_base/global_costmap/costmap
+      Color Scheme: costmap
+      Enabled: true
+      Alpha: 0.5
+    - Class: rviz/Map
+      Name: LocalCostmap
+      Topic: /move_base/local_costmap/costmap
+      Color Scheme: costmap
+      Enabled: true
+      Alpha: 0.5
+    - Class: rviz/Path
+      Name: GlobalPath
+      Topic: /move_base/GlobalPlanner/plan
+      Color: 0; 255; 0
+      Enabled: true
+    - Class: rviz/Path
+      Name: LocalPath
+      Topic: /move_base/DWAPlannerROS/local_plan
+      Color: 0; 0; 255
+      Enabled: true
+    - Class: rviz/PointCloud2
+      Name: ObstacleCloud
+      Topic: /rtabmap/cloud_obstacles
+      Size (m): 0.03
+      Enabled: true
+
+  Global Options:
+    Fixed Frame: map
+    Background Color: 48; 48; 48
+
+  Tools:
+    - Class: rviz/Interact
+    - Class: rviz/MoveCamera
+    - Class: rviz/SetGoal
+      Topic: /move_base_simple/goal
+
+  Views:
+    Current:
+      Class: rviz/Orbit
+      Distance: 10
+      Pitch: 1.0
+      Yaw: 0.0
