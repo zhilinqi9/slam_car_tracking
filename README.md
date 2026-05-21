@@ -2,6 +2,10 @@
 
 第十届集创赛「基于复旦微电子FMQL30TAI的多模态实验室火灾监测系统」SLAM建图与小车导航控制模块。
 
+> 📹 **演示视频（建图与小车运行）**：[百度网盘](https://pan.baidu.com/s/1MCyCl1MxtNFhT9Lp4oj08A?pwd=5y92) （提取码：`5y92`）
+>
+> 🛠 **技术栈**：ROS Noetic · RTAB-Map 视觉 SLAM · robot_localization (EKF) · move_base/DWA · OAK-D Pro 双目相机 · CAN 线控底盘
+
 ## 目录结构
 
 ```
