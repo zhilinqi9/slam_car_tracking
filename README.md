@@ -230,13 +230,6 @@ rostopic pub -r 100 /ctrl_cmd yhs_can_msgs/ctrl_cmd \
 | EKF frequency / two_d_mode | 30 Hz / true | 融合更新频率与 2D 运动约束 |
 | cmd_vel→ctrl_cmd 心跳 | 100 Hz | 满足底盘 ≥30 Hz 控制硬性要求 |
 
-## 实测性能
-
-- RTAB-Map 重定位时间：< 5 秒（上电即完成）
-- 30 米闭环巡检累积定位误差：< 8 cm
-- CAN 控制频率：100 Hz（cmd_vel→ctrl_cmd 心跳） / 30 Hz（底盘 ctrl_fb 反馈）
-- EKF 融合后 yaw 累积误差：< 0.5°
-
 ## 许可
 
 本项目代码遵循各子模块原始许可：
