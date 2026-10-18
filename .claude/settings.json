@@ -1,0 +1,53 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(catkin build:*)",
+      "Bash(catkin test:*)",
+      "Bash(catkin clean:*)",
+      "Bash(catkin list:*)",
+      "Bash(rostopic list:*)",
+      "Bash(rostopic echo:*)",
+      "Bash(rostopic hz:*)",
+      "Bash(rostopic info:*)",
+      "Bash(rostopic type:*)",
+      "Bash(rosnode list:*)",
+      "Bash(rosnode info:*)",
+      "Bash(rosparam get:*)",
+      "Bash(rosparam list:*)",
+      "Bash(rosmsg show:*)",
+      "Bash(rospack find:*)",
+      "Bash(rosbag info:*)",
+      "Bash(rosrun tf tf_echo:*)",
+      "Bash(rosrun tf2_tools view_frames.py:*)",
+      "Bash(candump:*)",
+      "Bash(./tools/check_env.sh:*)",
+      "Bash(./tools/setup_can.sh status:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git worktree list:*)",
+      "Bash(python3 -m pytest:*)"
+    ],
+    "ask": [
+      "Bash(rostopic pub:*)",
+      "Bash(cansend:*)",
+      "Bash(cangen:*)",
+      "Bash(roslaunch:*)",
+      "Bash(rosrun:*)",
+      "Bash(rosservice call:*)",
+      "Bash(sudo:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git reset:*)",
+      "Bash(git checkout:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)",
+      "Read(./*.docx)",
+      "Read(./*.pdf)",
+      "Read(./*.zip)"
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>fw_chassis</name>
+  <version>0.1.0</version>
+  <description>FW-mini-pro 4T4D 线控底盘驱动：SocketCAN 协议编解码、cmd_vel 下发与心跳、轮式里程计</description>
+  <maintainer email="zhilinqi9@gmail.com">綦志林</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- P1 实现驱动节点时再按需补充 roscpp / geometry_msgs / nav_msgs / tf2_ros / diagnostic_updater -->
+  <test_depend>rosunit</test_depend>
+</package>

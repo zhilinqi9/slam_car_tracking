@@ -1,11 +1,20 @@
 # ===== 体积过大 / 第三方，不上传到仓库 =====
 *.zip
+*.tbz2
+*.iso
+*.exe
+*.mp4
 ORB_SLAM3/Vocabulary/ORBvoc.txt
+
+# ===== 厂家资料目录（本地保留，版权归厂家；需要的内容已整理到 docs/hardware/） =====
+Jetson Orin NX CLB套件客户资料/
+6-煜禾森商业导航/
 
 # ===== 个人与申请材料（含个人信息），不公开 =====
 *.docx
 *.pptx
 *.pdf
+*.xlsm
 STARLAB_项目介绍.md
 
 # ===== 本地生成脚本 =====
@@ -13,13 +22,26 @@ _build_resume.py
 _build_prep.py
 
 # ===== catkin 编译产物 =====
-FW-mini-pro-ros1/build/
-FW-mini-pro-ros1/devel/
-FW-mini-pro-ros1/.catkin_workspace
+ros_ws/build/
+ros_ws/devel/
+ros_ws/install/
+ros_ws/logs/
+ros_ws/.catkin_tools/
+ros_ws/.catkin_workspace
 **/__pycache__/
 *.pyc
 
-# ===== 系统/编辑器 =====
+# ===== 运行数据（地图和路线入库；bag 和报告体积大，不入库） =====
+data/bags/
+data/reports/
+*.bag
+*.bag.active
+
+# ===== Claude Code 个人设置（团队共享的是 .claude/settings.json） =====
+.claude/settings.local.json
+
+# ===== 系统 / 编辑器 =====
 .DS_Store
 Thumbs.db
 *~
+.vscode/
