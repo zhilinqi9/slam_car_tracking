@@ -3,7 +3,7 @@
 FW-mini-pro 四转四驱线控底盘 + Jetson Orin NX + 2D 激光雷达 + OAK-D Pro。
 **建图 → 遥控示教一条路线 → 小车在地图上定位并反复沿这条路线行驶，遇到障碍停车，障碍清除后继续。**
 
-> v1（RTAB-Map 纯视觉方案）的代码和说明已归档到 [`legacy/`](legacy/)，问题分析见 [项目评估报告](docs/00_项目评估报告.md)。
+> v1（RTAB-Map 纯视觉方案）的代码和说明已移出工作树，用 git tag [`v1`](https://github.com/zhilinqi9/slam_car_tracking/tree/v1) 保留，问题分析见 [项目评估报告](docs/00_项目评估报告.md)。
 
 ## 技术栈
 ROS1 Noetic · JetPack 5.1.1（L4T R35.3.1）· slam_toolbox · AMCL · robot_localization（EKF）· 自研 Regulated Pure Pursuit 路径跟随 · SocketCAN
@@ -32,8 +32,8 @@ cd ros_ws && catkin build && catkin test
 ros_ws/src/   fw_chassis（底盘驱动）· yhs_can_msgs（厂家消息）· 后续：fw_description / fw_bringup / fw_navigation / fw_tools
 docs/         评估报告、路线图、工作流、硬件资料、SOP、工作日志
 data/         maps/、paths/（入库）· bags/、reports/（不入库）
-tools/        环境与 CAN 脚本
-legacy/       v1 归档（只读）
+tools/        check_env.sh（体检）· setup_can.sh（CAN）· clean.sh（清理垃圾，每次提交前运行）
+refs/         厂家手册 PDF（本地，不入库）
 ```
 
 ## 进度

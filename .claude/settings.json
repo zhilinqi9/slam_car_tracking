@@ -27,7 +27,14 @@
       "Bash(git log:*)",
       "Bash(git branch:*)",
       "Bash(git worktree list:*)",
-      "Bash(python3 -m pytest:*)"
+      "Bash(python3 -m pytest:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push origin:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull --ff-only:*)",
+      "Bash(./tools/clean.sh:*)",
+      "Bash(git tag:*)"
     ],
     "ask": [
       "Bash(rostopic pub:*)",
@@ -37,17 +44,17 @@
       "Bash(rosrun:*)",
       "Bash(rosservice call:*)",
       "Bash(sudo:*)",
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
       "Bash(git reset:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git rebase:*)",
+      "Bash(git clean:*)"
     ],
     "deny": [
       "Bash(rm -rf /*)",
       "Bash(rm -rf ~*)",
-      "Read(./*.docx)",
-      "Read(./*.pdf)",
-      "Read(./*.zip)"
+      "Bash(git push --force origin main:*)"
     ]
   }
 }

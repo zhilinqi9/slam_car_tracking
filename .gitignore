@@ -6,9 +6,8 @@
 *.mp4
 ORB_SLAM3/Vocabulary/ORBvoc.txt
 
-# ===== 厂家资料目录（本地保留，版权归厂家；需要的内容已整理到 docs/hardware/） =====
-Jetson Orin NX CLB套件客户资料/
-6-煜禾森商业导航/
+# ===== 厂家手册（本地参考，版权归厂家；需要的内容已整理到 docs/hardware/） =====
+refs/
 
 # ===== 个人与申请材料（含个人信息），不公开 =====
 *.docx

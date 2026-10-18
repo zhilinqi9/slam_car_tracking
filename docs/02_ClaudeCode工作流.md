@@ -4,7 +4,7 @@
 
 | 角色 | 是谁 | 负责 |
 |---|---|---|
-| **你** | 人 | 定方向、确认计划、**执行一切会让车动的操作**、拿遥控器、读卷尺、批准 commit |
+| **你** | 人 | 定方向、确认计划、**执行一切会让车动的操作**、拿遥控器、读卷尺、在车上观察现象 |
 | **主会话** | 运行在 Jetson 上的 `claude` | 统筹：拆任务、写核心代码、集成、调用子代理 |
 | **子代理** | `.claude/agents/` 里的 6 个 | 在独立上下文中完成专门的工作，只把结论交回主会话，不占用主会话的上下文 |
 | **并行会话** | 不同 git worktree 里各开一个 `claude` | 同时开发互不相关的包 |
@@ -13,7 +13,7 @@
 
 ```
 CLAUDE.md                  每次会话自动加载：项目事实、硬规则、安全规则
-.claude/settings.json      权限：只读命令直接放行；会让车动的命令、sudo、commit 每次都要确认
+.claude/settings.json      权限：只读命令直接放行；会让车动的命令、sudo、强推每次都要确认；commit / push 自动执行
 .claude/agents/            ros-architect · ros-reviewer · test-engineer · bag-analyst · nav-tuner · doc-keeper
 .claude/commands/          /session-start · /session-end · /field-test · /phase-gate
 ```
@@ -43,7 +43,10 @@ claude          # 第一次运行时按提示登录
 
 确认配置已生效：在 claude 里输入 `/agents`，应该能看到 6 个项目子代理；输入 `/`，补全列表里应该有 `session-start` 等命令。
 
-> 本地 Windows 上这份仓库里的 PDF、视频、zip 都被 `.gitignore` 排除了，clone 下来的仓库是干净的。需要厂家手册时用 scp 单独拷过去。
+> 仓库里只有代码和文档。厂家手册 PDF 放在本地 `refs/`（不入库），需要时从 PC 拷过去：
+> `scp -r E:/slam_car_tracking/refs nvidia@<jetson-ip>:~/slam_car_tracking/`
+>
+> **两台机器同时用时**：每次开始前 `git pull --ff-only`，结束时 `/session-end` 会自动提交并推送。不要在 PC 和 Jetson 上同时改同一个分支。
 
 ---
 
@@ -100,7 +103,7 @@ cd ../car-safety && claude               # 窗口 2：开发 safety_guard
 并行时的规则：
 - **硬件锁**：只有主会话（主 worktree）可以连真车；其他 worktree 只做编译和单元测试
 - 如果需要 roscore（例如 rostest），每个 worktree 用不同的端口：`export ROS_MASTER_URI=http://localhost:11312` 加 `roscore -p 11312`
-- 合并：回到主会话，先 `用 ros-reviewer 审查 feat/path-follower 分支`，没有问题再 `git merge feat/path-follower`，最后 `git worktree remove ../car-follower`
+- 合并：回到主会话，先 `用 ros-reviewer 审查 feat/path-follower 分支`，没有问题再 `git merge feat/path-follower` 并 `git push origin main`，最后 `git worktree remove ../car-follower` 和 `git branch -d feat/path-follower`（远端分支用 `git push origin --delete feat/path-follower` 删除）。每个 worktree 里的会话结束时同样要跑 `/session-end`，把分支推到远端
 - 较新版本的 Claude Code 可能内置了 worktree 相关的启动参数，可以用 `claude --help` 查看；上面的手动方式在任何版本都能用
 
 ### 方式 C：无头模式 `claude -p`（脚本化、批处理）
@@ -132,10 +135,10 @@ claude -p "用 bag-analyst 分析 data/bags/2026-10-25_p4-loop10.bag，对照 P4
 │
 ├─ 阶段收尾时：/phase-gate P? ── 逐项核对证据
 │
-└─ /session-end [你在车上看到的现象] ── doc-keeper 写日志、更新 SOP 和里程碑 ── 你批准 commit
+└─ /session-end [你在车上看到的现象] ── clean.sh 清理 → doc-keeper 写日志和 SOP → 自动 commit + push
 ```
 
-**工作日志和操作说明不会遗漏**：`/session-end` 每次都会生成 `docs/worklog/日期_主题.md`（包括"本次操作说明"一节）；操作流程有变化时会同步更新 `docs/sop/`。
+**每次工作都会留下记录并同步到 GitHub**：`/session-end` 会先运行 `tools/clean.sh` 清理垃圾文件，最后提交并推送，回复里会给出 commit hash。`/session-end` 每次都会生成 `docs/worklog/日期_主题.md`（包括"本次操作说明"一节）；操作流程有变化时会同步更新 `docs/sop/`。
 
 ---
 

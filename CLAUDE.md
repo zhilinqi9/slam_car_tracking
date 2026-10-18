@@ -40,9 +40,11 @@ docs/
   worklog/           工作日志（每次会话一篇：当天做了什么）
 data/maps|paths/     地图、路线（入库）；data/bags/ 不入库
 tools/               setup_can.sh、check_env.sh 等脚本
-legacy/              v1 代码，只读参考，不要修改，也不要从中复制 bug
+refs/                厂家手册 PDF（本地参考，不入库）
 ```
-仓库根目录下的 zip、docx、pdf 和厂家资料目录是用户的个人或厂家材料，**不要读写，也不要提交**。
+- v1 代码不在工作树里，用 tag `v1` 保留：`git show v1:FW-mini-pro-ros1/src/<文件>`。只作参考，不要从中复制 bug。
+- `refs/` 里的 PDF 可以读，但**不要提交**；需要长期使用的内容整理成 `docs/hardware/` 下的 markdown。
+- 旧文件夹 `E:\SLAM建图及小车循迹` 只是用户个人材料和厂家资料的存档，**不要在那里工作，也不要读写其中的个人文件**。
 
 ## 常用命令
 ```bash
@@ -66,4 +68,13 @@ source devel/setup.zsh
 - **代码是唯一事实来源**。工作日志里只写 commit hash、实测数据、bag 文件名和结论，不贴"示意代码"（v1 的日志和代码对不上，这个问题要避免）
 - 结论必须有证据：测试输出、`rostopic hz` 结果、bag 指标。没有在车上验证过的，写"未验证"
 - 调参必须有量化对比（改之前和改之后同一指标的数值），用 `fw_tools` 里的脚本从 bag 里算
-- 提交信息用中文，格式 `<包名>: <做了什么>`；只在用户要求时才 commit 或 push
+
+## 收尾：每完成一项工作都要清理并提交（用户的长期要求）
+1. `./tools/clean.sh` 清理垃圾；它列出的未跟踪文件逐个决定：有用的提交，没用的删除或加入 `.gitignore`。不允许留下来路不明的文件
+2. `catkin build && catkin test` 通过（只改了文档时可以跳过）
+3. 写好或更新工作日志（`/session-end` 会完成第 1–4 步）
+4. `git add` → `git commit` → `git push origin <当前分支>`。不需要再问用户，但要在回复里报告 commit hash
+   - 提交信息用中文，格式 `<包名>: <做了什么>`；代码和文档分开提交；末尾加 Co-Authored-By 行
+   - 测试不通过时不要提交到 main：先提交到 `wip/<主题>` 分支并推送，在日志里写明原因
+   - 不要用 `git push --force`、`git reset --hard`，也不要改写已推送的历史
+   - 推送失败（网络、冲突）时报告给用户，不要强推
