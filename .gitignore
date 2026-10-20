@@ -27,11 +27,15 @@ ros_ws/install/
 ros_ws/logs/
 ros_ws/.catkin_tools/
 ros_ws/.catkin_workspace
+
 **/__pycache__/
 *.pyc
 
+# ===== 第三方源码与编译产物（源码清单在 thirdparty/repos.yaml，补丁在 thirdparty/patches/） =====
+thirdparty_ws/
+
 # ===== 运行数据（地图和路线入库；bag 和报告体积大，不入库） =====
-data/bags/
+data/bags
 data/reports/
 *.bag
 *.bag.active
