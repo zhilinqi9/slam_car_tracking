@@ -23,7 +23,8 @@ FW-mini-pro 线控底盘 + Jetson Orin NX：先建 3D 点云地图（同时生�
 ## 雷达硬事实（来源：docs/hardware/Livox_Mid-360速查.md，标"待核实"的项不能当作事实使用）
 - 以太网接口，静态 IP；驱动是 livox_ros_driver2 + Livox-SDK2，话题 `/livox/lidar`（CustomMsg）、`/livox/imu`
 - **倒装**：URDF 里 `livox_frame` 的 roll = π；FAST-LIO 的 body 坐标系 = 雷达内置 IMU 坐标系（`livox_imu`）
-- 雷达时间戳必须通过 PTP 和系统时间对齐，否则 TF 和 bag 分析会对不上
+- 雷达时间戳必须通过 PTP 和系统时间对齐，否则 TF 和 bag 分析会对不上；雷达的 PTP **只支持 UDP/IPv4**
+- 供电接底盘的 **12 V** 对外供电（允许 9–27 V，瞬间超过 27 V 可能损坏）；倒装时安装面离地 **≥ 0.5 m**（手册要求）
 
 ## 架构硬规则（违反任何一条都视为 bug）
 1. **每个 TF 只有一个发布者**：`map→odom` 只由 `map_localizer` 发布（只通过 localization.launch 启动，teach/repeat 必须 include 它，不得自行启动）；`odom→base_footprint` 只由 `lio_odom_bridge` 发布（FAST-LIO 自带的 TF 广播必须关掉）；其余来自 robot_state_publisher（URDF）。不要再写零散的 `static_transform_publisher`，也不要再引入 EKF、AMCL 来发布这些 TF。
