@@ -41,6 +41,12 @@ cd ~/slam_car_tracking
 claude          # 第一次运行时按提示登录
 ```
 
+本车实测（2026-10-20）补充：
+- Jetson 用户名是 `kuper`。`~/.zshrc` 里必须有 `source /opt/ros/noetic/setup.zsh` 和 `export PATH="$HOME/.local/bin:$PATH"`（claude 装在 `~/.local/bin`）。**不要在 zsh 里 source 任何 `setup.bash`**：它会去当前目录找 `setup.sh` 并报错，而且会把别的工作空间混进本项目的环境
+- 从 PC 免密登录：PC 上 `ssh-keygen -t ed25519`，然后在 PowerShell 里执行 `type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh kuper@<jetson-ip> "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"`（输入一次密码）
+- PC 的 Windows 用户名是中文时，**Git Bash 自带的 ssh 找不到 `~/.ssh`**（路径编码错误），要用 Windows 自带的 `C:\Windows\System32\OpenSSH\ssh.exe`（PowerShell 里直接输入 `ssh` 用的就是它）
+- Jetson 现在通过手机热点上网（192.168.43.x），IP 可能变化，连不上时在 Jetson 上运行 `hostname -I` 查看
+
 确认配置已生效：在 claude 里输入 `/agents`，应该能看到 6 个项目子代理；输入 `/`，补全列表里应该有 `session-start` 等命令。
 
 > 仓库里只有代码和文档。厂家手册 PDF 放在本地 `refs/`（不入库），需要时从 PC 拷过去：
