@@ -46,6 +46,18 @@ claude          # 第一次运行时按提示登录
 - 从 PC 免密登录：PC 上 `ssh-keygen -t ed25519`，然后在 PowerShell 里执行 `type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh kuper@<jetson-ip> "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"`（输入一次密码）
 - PC 的 Windows 用户名是中文时，**Git Bash 自带的 ssh 找不到 `~/.ssh`**（路径编码错误），要用 Windows 自带的 `C:\Windows\System32\OpenSSH\ssh.exe`（PowerShell 里直接输入 `ssh` 用的就是它）
 - Jetson 现在通过手机热点上网（192.168.43.x），IP 可能变化，连不上时在 Jetson 上运行 `hostname -I` 查看
+- Jetson 推送 GitHub 用 SSH（2026-10-20 配好）：
+  - 远端地址是 `git@github.com:zhilinqi9/slam_car_tracking.git`；Jetson 的公钥 `~/.ssh/id_ed25519.pub` 加在**仓库所有者 zhilinqi9** 账号下。加到别的账号会报 `Permission ... denied to <账号>`：能读不能推
+  - 机器上的 sing-box 代理会卡住直连 GitHub 的 SSH（22 和 443 端口都报 `Connection timed out during banner exchange`），所以在 `~/.ssh/config` 里让它走本地代理加 443 端口：
+    ```
+    Host github.com
+        HostName ssh.github.com
+        Port 443
+        User git
+        ProxyCommand nc -X 5 -x 127.0.0.1:10808 %h %p
+    ```
+  - 检查：`ssh -T git@github.com`，期望输出 `Hi zhilinqi9! You've successfully authenticated`
+  - 本仓库的提交身份只在仓库里配置（`git config user.name/user.email`），不是全局配置
 
 确认配置已生效：在 claude 里输入 `/agents`，应该能看到 6 个项目子代理；输入 `/`，补全列表里应该有 `session-start` 等命令。
 
