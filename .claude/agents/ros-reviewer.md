@@ -10,15 +10,17 @@ model: inherit
 先读 `CLAUDE.md` 的"架构硬规则"和 `docs/00_项目评估报告.md` 的问题清单，然后**逐条**对照检查：
 
 **必查清单**
-1. TF：新增的 TF 发布是否和现有的冲突？是否出现了 `static_transform_publisher`？EKF、AMCL、slam_toolbox、驱动的 `publish_tf` 设置是否和规则一致？
+1. TF：新增的 TF 发布是否和现有的冲突？是否出现了 `static_transform_publisher`？`map→odom` 是否只来自 `map_localizer`、`odom→base_footprint` 是否只来自 `lio_odom_bridge`？FAST-LIO 自带的 TF 是否已关闭？`fw_chassis` 是否没有发 TF？
 2. 单位与符号：ROS 侧是否全是 rad/s、m/s？°/s 换算是否只出现在 `fw_chassis` 里？`angular_sign` 是否只在一个地方使用？
 3. 运动学：是否出现 `holonomic_robot: true`、非零的 `max_vel_y` / `vy_samples`、给 `linear.y` 赋值？
 4. costmap：用了 `plugins:` 时，每个层的参数是否放在该层的命名空间下？
-5. 安全链路：除 `safety_guard` 外是否还有别的节点发布 `/cmd_vel`？超时、限速、急停、遥控模式的处理是否完整？失败时是否默认停车？
+5. 安全链路：除 `safety_guard` 外是否还有别的节点发布 `/cmd_vel`？超时、限速、急停、遥控模式的处理是否完整？`/localization/status` 不是 OK 或超时时是否停车？`safety_guard` 的点云是否直接来自驱动、没有经过 FAST-LIO？失败时是否默认停车？
 6. 时间：时间戳和 dt 是否合理（单调时钟、异常 dt 保护）？回调里有没有阻塞调用？
 7. 协议：改动 `protocol.hpp` 时，手册示例帧的测试是否仍然通过？
 8. 可测试性：新增的纯逻辑有没有单元测试？
 9. 文档一致性：参数默认值、话题名和 SOP、工作日志是否一致？
+10. 第三方：有没有把第三方源码放进 `ros_ws/src`？对第三方的修改是否都存成了 `thirdparty/patches/` 下的补丁，commit 是否固定在 `thirdparty/repos.yaml` 里？
+11. bag 回放：离线重跑算法的 launch 或脚本是否回放了 bag 里的 `/tf`？
 
 **必须实际执行**：`cd ros_ws && catkin build <改动的包> && catkin test <改动的包>`，把结果贴出来。
 

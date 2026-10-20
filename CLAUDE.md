@@ -3,13 +3,13 @@
 所有对话、文档、注释一律用**中文**；代码标识符用英文。
 
 ## 项目目标
-FW-mini-pro 线控底盘 + Jetson Orin NX：先建 2D 地图，再遥控示教一条路线，之后小车在地图上定位并**反复沿这条路线行驶**，遇到障碍停车，障碍清除后继续。
+FW-mini-pro 线控底盘 + Jetson Orin NX：先建 3D 点云地图（同时生成 2D 栅格），再遥控示教一条路线，之后小车在地图上定位并**反复沿这条路线行驶**，遇到障碍停车，障碍清除后继续。
 路线图与验收标准见 `docs/01_技术路线与里程碑.md`；当前处于哪个阶段，看最新一篇 `docs/worklog/*.md`。
 
 ## 平台（不要擅自更改）
-- Jetson Orin NX，JetPack 5.1.1 / L4T R35.3.1，Ubuntu 20.04，**ROS1 Noetic**，`catkin build`（catkin_tools）
+- Jetson Orin NX，JetPack 5.1.5 / L4T R35.6.1（2026-10-20 实测），Ubuntu 20.04，**ROS1 Noetic**，`catkin build`（catkin_tools）
 - 底盘：FW-mini-pro **四转四驱（4T4D）**，**不是差速底盘，也不是全向底盘**；PEAK PCAN-USB → `can0` @ 500 kbps
-- 传感器：2D 激光雷达（主定位）、OAK-D Pro（IMU；深度相机用于 P5 补充避障）
+- 传感器：**Livox Mid-360，倒装**（3D 激光 + 内置 IMU，以太网；主定位与近场避障）、OAK-D Pro（深度相机用于 P5 补充避障）
 - 用户 shell 是 zsh：source `devel/setup.zsh`，不要用 `.bash`
 
 ## 底盘硬事实（来源：docs/hardware/FW-mini-pro_CAN协议速查.md）
@@ -18,18 +18,27 @@ FW-mini-pro 线控底盘 + Jetson Orin NX：先建 2D 地图，再遥控示教�
 - 控制帧必须以 10–50 ms 的周期连续发送，带 alive 计数和 BCC 校验
 - 遥控器 SWA 拨杆优先级最高：向上 = 遥控模式，此时 CAN 指令无效
 
+## 雷达硬事实（来源：docs/hardware/Livox_Mid-360速查.md，标"待核实"的项不能当作事实使用）
+- 以太网接口，静态 IP；驱动是 livox_ros_driver2 + Livox-SDK2，话题 `/livox/lidar`（CustomMsg）、`/livox/imu`
+- **倒装**：URDF 里 `livox_frame` 的 roll = π；FAST-LIO 的 body 坐标系 = 雷达内置 IMU 坐标系（`livox_imu`）
+- 雷达时间戳必须通过 PTP 和系统时间对齐，否则 TF 和 bag 分析会对不上
+
 ## 架构硬规则（违反任何一条都视为 bug）
-1. **每个 TF 只有一个发布者**：`map→odom` 由 AMCL 或 slam_toolbox 发布（二者不能同时运行）；`odom→base_footprint` 只由 EKF 发布；其余来自 robot_state_publisher（URDF）。不要再写零散的 `static_transform_publisher`。
+1. **每个 TF 只有一个发布者**：`map→odom` 只由 `map_localizer` 发布（只通过 localization.launch 启动，teach/repeat 必须 include 它，不得自行启动）；`odom→base_footprint` 只由 `lio_odom_bridge` 发布（FAST-LIO 自带的 TF 广播必须关掉）；其余来自 robot_state_publisher（URDF）。不要再写零散的 `static_transform_publisher`，也不要再引入 EKF、AMCL 来发布这些 TF。
 2. ROS 接口一律使用 SI 单位 + REP-103（rad/s，逆时针为正）。°/s 转换和符号修正**只在 `fw_chassis` 内部**做一次。
 3. **只有 `safety_guard` 能发布 `/cmd_vel`**。控制器输出到 `/cmd_vel_nav`、`/cmd_vel_move_base` 等话题。
 4. 规划器和控制器必须按**非全向**模型配置（不能设 `holonomic_robot: true`，`vy` 必须为 0）。
 5. costmap 使用 `plugins:` 时，每个层的参数都要放在**该层自己的命名空间**下（如 `obstacle_layer/observation_sources`）。
 6. 协议、数学、积分这类逻辑写成**不依赖 ROS 的纯函数**并配单元测试；ROS 节点只做一层薄封装。
+7. 第三方源码（Livox-SDK2、livox_ros_driver2、FAST_LIO、small_gicp 等）**不放进 `ros_ws/src`**：在 `thirdparty/repos.yaml` 里固定 commit，我们的修改存成 `thirdparty/patches/` 下的补丁，由 `tools/setup_thirdparty.sh` 编译到 `thirdparty_ws/`（不入库）。
+8. 下游节点（跟随器、`safety_guard`）只要看到 `/localization/status` 不是 `OK` 就必须停车，超过 0.5 s 没收到 status 等同于 `LOST`；`path_recorder` 在不是 `OK` 时暂停记录。
+9. 离线回放 bag 重跑算法时，不能回放 bag 里的 `/tf`（规则见 docs/01 第 1.2 节）。
 
 ## 目录
 ```
 ros_ws/src/          catkin 工作空间（v2 代码都在这里）
   fw_chassis/        底盘驱动（protocol.hpp 已完成，15 个测试）
+  fw_localization/   lio_odom_bridge、map_localizer（待建，P2–P3）
   yhs_can_msgs/      厂家消息，仅用于调试对照
 docs/
   00_项目评估报告.md    v1 问题清单（新代码不要重复这些错误）
@@ -39,7 +48,8 @@ docs/
   sop/               操作说明（累积型：现在该怎么做）
   worklog/           工作日志（每次会话一篇：当天做了什么）
 data/maps|paths/     地图、路线（入库）；data/bags/ 不入库
-tools/               setup_can.sh、check_env.sh 等脚本
+thirdparty/          repos.yaml（固定 commit）+ patches/（待建，P0）；编译产物在 thirdparty_ws/（不入库）
+tools/               setup_can.sh、check_env.sh、clean.sh；setup_thirdparty.sh（待建，P0）
 refs/                厂家手册 PDF（本地参考，不入库）
 ```
 - v1 代码不在工作树里，用 tag `v1` 保留：`git show v1:FW-mini-pro-ros1/src/<文件>`。只作参考，不要从中复制 bug。

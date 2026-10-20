@@ -96,7 +96,7 @@ cd ../car-safety && claude               # 窗口 2：开发 safety_guard
 
 ```
 你在 worktree feat/path-follower 里工作，只改 ros_ws/src/fw_navigation/ 下的 path_follower 相关文件。
-接口按 docs/01 第 1.2 节约定：订阅 /odometry/filtered 和 TF map→base_footprint，输出 /cmd_vel_nav。
+接口按 docs/01 第 1.2 节约定：订阅 TF map→base_footprint 和 /localization/status，输出 /cmd_vel_nav。
 只做单元测试，不连真车、不启动 roscore。完成后运行 catkin test，然后用 ros-reviewer 自查。
 ```
 
@@ -148,8 +148,8 @@ claude -p "用 bag-analyst 分析 data/bags/2026-10-25_p4-loop10.bag，对照 P4
 |---|---|---|
 | P0 环境 | 跑 `check_env.sh`，逐项安装和修复 | — |
 | P1 底盘 | 写 `fw_chassis_node` | ros-architect 先出接口设计；test-engineer 写积分和超时逻辑的测试；上车后交给 bag-analyst |
-| P2 传感器 | URDF + EKF | worktree：`fw_tools` 的 bag 指标脚本（odom 误差、频率统计） |
-| P3 建图定位 | slam_toolbox / AMCL 的 launch | bag-analyst 做定位重复性分析；nav-tuner 调 AMCL |
+| P2 雷达与 LIO | URDF + FAST-LIO2 配置 + `lio_odom_bridge` | worktree：`fw_tools` 的 bag 指标脚本（LIO 漂移、频率、时间差）；test-engineer 写位姿换算测试 |
+| P3 建图定位 | 离线建图比选 + `map_localizer` | worktree：地图后处理脚本；bag-analyst 做地图质量和定位重复性分析；nav-tuner 调配准门限 |
 | P4 示教复现 | 集成 + 上车 | worktree A：path_recorder + path_follower；worktree B：safety_guard；test-engineer 写几何测试 |
 | P5 鲁棒性 | 按需 | 方式 C：每次测完车自动出报告 |
 
@@ -163,7 +163,7 @@ claude -p "用 bag-analyst 分析 data/bags/2026-10-25_p4-loop10.bag，对照 P4
 | `Shift+Tab` | 循环切换：普通 → 自动接受编辑 → **Plan 模式**（只出方案不改代码） |
 | `Esc` / `Esc Esc` | 打断当前操作 / 回到之前的某条消息重新编辑 |
 | `@文件路径` | 把指定文件加入上下文 |
-| `!命令` | 直接执行 shell 命令，输出会进入上下文（例如 `!rostopic hz /scan`） |
+| `!命令` | 直接执行 shell 命令，输出会进入上下文（例如 `!rostopic hz /livox/imu`） |
 | `/clear` | 换一个不相关的任务时清空上下文（CLAUDE.md 会重新加载） |
 | `/compact` | 压缩长对话，保留要点 |
 | `/agents` | 查看、新建、编辑子代理 |
