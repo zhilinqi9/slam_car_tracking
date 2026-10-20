@@ -43,6 +43,19 @@ if [[ -n "$untracked" ]]; then
   echo "$untracked" | sed 's/^/  ? /'
 fi
 
+# Codex 用的 AGENTS.md、.codex/agents/ 由 CLAUDE.md、.claude/agents/ 生成，两边必须一致
+py=""
+for cand in python3 python; do  # Windows 上的 python3 可能是应用商店占位程序，要确认真能运行
+  if command -v "$cand" >/dev/null && "$cand" -c 'import sys' >/dev/null 2>&1; then py=$cand; break; fi
+done
+if [[ -n "$py" ]]; then
+  if ! "$py" tools/sync_codex.py --check; then
+    echo "== Codex 规则和 Claude 规则不一致：运行 python3 tools/sync_codex.py 重新生成后再提交"
+  fi
+else
+  echo "== 没有 python3，跳过 Codex 规则一致性检查"
+fi
+
 # 体积提醒：bag 不入库，但会占满 Jetson 磁盘
 if [[ -d data/bags ]]; then
   echo "== data/bags 占用 $(du -sh data/bags | cut -f1)（超过 10G 时把旧 bag 拷到 PC 再删除）"
