@@ -49,7 +49,7 @@ docs/
   worklog/           工作日志（每次会话一篇：当天做了什么）
 data/maps|paths/     地图、路线（入库）；data/bags/ 不入库
 thirdparty/          repos.yaml（固定 commit）+ patches/（待建，P0）；编译产物在 thirdparty_ws/（不入库）
-tools/               setup_can.sh、check_env.sh、clean.sh；setup_thirdparty.sh（待建，P0）
+tools/               setup_can.sh、check_env.sh、clean.sh、sync_codex.py；setup_thirdparty.sh（待建，P0）
 refs/                厂家手册 PDF（本地参考，不入库）
 ```
 - v1 代码不在工作树里，用 tag `v1` 保留：`git show v1:FW-mini-pro-ros1/src/<文件>`。只作参考，不要从中复制 bug。
@@ -73,6 +73,7 @@ source devel/setup.zsh
 - 只读类操作（`rostopic echo/hz/list`、`candump`、`rosbag info`、编译、测试）可以直接执行
 
 ## 工作方式
+- 本文件和 `.claude/agents/` 是规则的唯一来源；Codex 用的 `AGENTS.md`、`.codex/agents/*.toml` 由 `python3 tools/sync_codex.py` 生成，不要直接改。改了这两处之后必须重新运行脚本，并和改动一起提交
 - 会话开始先运行 `/session-start`，结束前运行 `/session-end`。**每次会话必须留下一篇工作日志**；如果操作流程变了，同步更新 SOP
 - 非小改动先进入 Plan 模式出方案，用户确认后再写代码
 - **代码是唯一事实来源**。工作日志里只写 commit hash、实测数据、bag 文件名和结论，不贴"示意代码"（v1 的日志和代码对不上，这个问题要避免）
@@ -80,7 +81,7 @@ source devel/setup.zsh
 - 调参必须有量化对比（改之前和改之后同一指标的数值），用 `fw_tools` 里的脚本从 bag 里算
 
 ## 收尾：每完成一项工作都要清理并提交（用户的长期要求）
-1. `./tools/clean.sh` 清理垃圾；它列出的未跟踪文件逐个决定：有用的提交，没用的删除或加入 `.gitignore`。不允许留下来路不明的文件
+1. `./tools/clean.sh` 清理垃圾；它列出的未跟踪文件逐个决定：有用的提交，没用的删除或加入 `.gitignore`。不允许留下来路不明的文件。它还会检查 Codex 规则是否和本文件一致
 2. `catkin build && catkin test` 通过（只改了文档时可以跳过）
 3. 写好或更新工作日志（`/session-end` 会完成第 1–4 步）
 4. `git add` → `git commit` → `git push origin <当前分支>`。不需要再问用户，但要在回复里报告 commit hash
