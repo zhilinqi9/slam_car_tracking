@@ -1,0 +1,48 @@
+From b0bd478c0c04c4b5285c00448144909e57f65751 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=E7=B6=A6=E5=BF=97=E6=9E=97?= <zhilinqi9@gmail.com>
+Date: Wed, 21 Oct 2026 15:42:21 +0800
+Subject: [PATCH 2/2] =?UTF-8?q?TF=20=E5=B9=BF=E6=92=AD=20camera=5Finit?=
+ =?UTF-8?q?=E2=86=92body=20=E6=94=B9=E4=B8=BA=E5=8F=82=E6=95=B0=20publish/?=
+ =?UTF-8?q?tf=5Fpublish=5Fen=20=E6=8E=A7=E5=88=B6=EF=BC=8C=E9=BB=98?=
+ =?UTF-8?q?=E8=AE=A4=E5=85=B3=E9=97=AD?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ src/laserMapping.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/laserMapping.cpp b/src/laserMapping.cpp
+index fbed297..9f0cade 100644
+--- a/src/laserMapping.cpp
++++ b/src/laserMapping.cpp
+@@ -71,6 +71,8 @@ double T1[MAXN], s_plot[MAXN], s_plot2[MAXN], s_plot3[MAXN], s_plot4[MAXN], s_pl
+ double match_time = 0, solve_time = 0, solve_const_H_time = 0;
+ int    kdtree_size_st = 0, kdtree_size_end = 0, add_point_size = 0, kdtree_delete_counter = 0;
+ bool   runtime_pos_log = false, pcd_save_en = false, time_sync_en = false, extrinsic_est_en = true, path_en = true;
++// slam_car_tracking：odom→base_footprint 只由 lio_odom_bridge 发布，默认不广播 camera_init→body
++bool   tf_publish_en = false;
+ /**************************/
+ 
+ float res_last[100000] = {0.0};
+@@ -605,6 +607,8 @@ void publish_odometry(const ros::Publisher & pubOdomAftMapped)
+         odomAftMapped.pose.covariance[i*6 + 5] = P(k, 2);
+     }
+ 
++    if (!tf_publish_en) return;
++
+     static tf::TransformBroadcaster br;
+     tf::Transform                   transform;
+     tf::Quaternion                  q;
+@@ -762,6 +766,7 @@ int main(int argc, char** argv)
+     nh.param<bool>("publish/scan_publish_en",scan_pub_en, true);
+     nh.param<bool>("publish/dense_publish_en",dense_pub_en, true);
+     nh.param<bool>("publish/scan_bodyframe_pub_en",scan_body_pub_en, true);
++    nh.param<bool>("publish/tf_publish_en",tf_publish_en, false);
+     nh.param<int>("max_iteration",NUM_MAX_ITERATIONS,4);
+     nh.param<string>("map_file_path",map_file_path,"");
+     nh.param<string>("common/lid_topic",lid_topic,"/livox/lidar");
+-- 
+2.25.1
+

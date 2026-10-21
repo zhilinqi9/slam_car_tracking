@@ -1,0 +1,20 @@
+# 第三方源码清单（vcstool 格式），路径相对于 thirdparty_ws/
+# 版本一律写完整 commit；升级要单独提交，并用存档 bag 回归（docs/01 第 3 节）
+# 我们的修改在 thirdparty/patches/<仓库目录名>/*.patch，由 tools/setup_thirdparty.sh 打上
+repositories:
+  sdk/Livox-SDK2:              # 不是 catkin 包；编译后装到 /usr/local（驱动写死从那里找静态库）
+    type: git
+    url: https://github.com/Livox-SDK/Livox-SDK2.git
+    version: 6a940156dd7151c3ab6a52442d86bc83613bd11b   # tag v1.2.5，和 Jetson 上已安装的一致
+  src/livox_ros_driver2:
+    type: git
+    url: https://github.com/Livox-SDK/livox_ros_driver2.git
+    version: 6b9356cadf77084619ba406e6a0eb41163b08039   # 2024-09（1.2.4 之后只改了 README 和版本号）。master 需要 SDK v1.3.1（Mid360s、双回波），2026-10-21 决定不升级
+  src/FAST_LIO:                # 子模块 include/ikd-Tree 的 commit 由本仓库固定
+    type: git
+    url: https://github.com/hku-mars/FAST_LIO.git
+    version: 7cc4175de6f8ba2edf34bab02a42195b141027e9   # main，2026-10-21 取
+  src/small_gicp:              # 纯 CMake 包，catkin_tools 直接编译
+    type: git
+    url: https://github.com/koide3/small_gicp.git
+    version: 57c1106daf83c2c79ee0c58a9c7ed0032298ff4e   # tag v1.0.1

@@ -33,9 +33,11 @@ for p in map_server move_base pcl_ros depthai_ros_driver; do
 done
 
 info "第三方（thirdparty_ws）"
-# 库文件名按 Livox-SDK2 的 CMake 安装规则写的，P0 安装后核实
-ls /usr/local/lib/liblivox_lidar_sdk_shared.so* >/dev/null 2>&1 && ok "Livox-SDK2" || bad "Livox-SDK2 未安装（/usr/local/lib 下没有 liblivox_lidar_sdk_shared）"
-for p in livox_ros_driver2 fast_lio; do
+# livox_ros_driver2 链接的是静态库，CMakeLists 写死在 /usr/local/lib 下找；库文件里没有版本号，版本以 thirdparty/repos.yaml 为准
+ls /usr/local/lib/liblivox_lidar_sdk_static.a >/dev/null 2>&1 && ok "Livox-SDK2（版本对照 thirdparty/repos.yaml）" || bad "Livox-SDK2 未安装（/usr/local/lib 下没有 liblivox_lidar_sdk_static.a；运行 tools/setup_thirdparty.sh sdk）"
+# gcc 先搜 /usr/local/include：这里有别的 boost 时，会和 ROS/PCL 用的系统 boost 1.71 混用（2026-10-21 遇到过，已移到 /opt/boost-1.80）
+[[ -e /usr/local/include/boost ]] && bad "/usr/local/include 下有非系统 boost（$(grep -o '"[0-9_]*"' /usr/local/include/boost/version.hpp 2>/dev/null)），会和 ROS 的 boost 1.71 混用" || ok "/usr/local 下没有非系统 boost"
+for p in livox_ros_driver2 fast_lio small_gicp; do
   if [[ -d "$REPO/thirdparty_ws/src" ]] && find "$REPO/thirdparty_ws/src" -maxdepth 3 \( -name package.xml -o -name package_ROS1.xml \) -exec grep -l "<name>$p</name>" {} + 2>/dev/null | grep -q .; then
     ok "$p 源码已拉取"
   else
