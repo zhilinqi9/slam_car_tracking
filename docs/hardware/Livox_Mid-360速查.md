@@ -1,6 +1,7 @@
 # Livox Mid-360 速查
 
 > 来源：`refs/lidar/Livox_Mid-360_User_Manual_EN.pdf`（User Manual v1.2，2024.04，下文写作"手册 p.N"，N 是手册页脚的页码）。
+> 驱动、FAST-LIO 的内容来源是 `thirdparty/repos.yaml` 固定版本的源码（标了文件和行号）。
 > 手册里没有的内容（驱动、SDK、FAST-LIO 的细节）标"待核实"，在 P0/P2 安装和上车时核实，填上来源后才能当作事实使用。
 
 ## 1. 规格
@@ -12,7 +13,7 @@
 | 精度 | 距离随机误差 2 cm（1σ，@10 m），3 cm（@0.2 m）；角度随机误差 0.15° | 手册 p.20 |
 | 点频 / 帧率 | 200,000 点/秒；10 Hz（典型值） | 手册 p.20 |
 | 内置 IMU | ICM40609，3 轴加速度 + 3 轴角速度，默认 200 Hz 推送，可关闭 | 手册 p.2、p.15、p.20 |
-| IMU 加速度单位（驱动输出） | 待核实（预计是 g，不是 m/s²） | — |
+| IMU 加速度单位（驱动输出） | 驱动把 SDK 的 `acc_x/y/z` 原样填进 `linear_acceleration`，不做换算；SDK 给出的单位**仍待实测**（预计是 g）。FAST-LIO 不受影响：它用静止时测到的加速度模长归一化到 G | livox_ros_driver2 `6b9356c` `src/lddc.cpp:493`；FAST_LIO `IMU_Processing.hpp:196,266` |
 | 网络 | 100BASE-TX 以太网，UDP 传输；**不能接 PoE 设备** | 手册 p.20、p.10、p.11 |
 | 供电 | 9–27 V DC，**推荐 12 V**；正常工作 6.5 W；启动时 18 W 持续约 8 s（环境 < 35 °C）；−20~0 °C 时自加热，最高 14 W，最长 10 min；电压瞬间超过 27 V 可能损坏 | 手册 p.10、p.20 |
 | 尺寸 / 重量 | 65 × 65 × 60 mm，约 265 g | 手册 p.9 |
@@ -36,9 +37,9 @@
 | 序列号在哪里看 | 雷达背面的二维码贴纸；或者 Livox Viewer 2 的设备管理器；雷达上电后也会周期性广播设备信息（含序列号） | 手册 p.11、p.12 |
 | 改雷达 IP | Livox Viewer 2 或 Livox SDK 2 | 手册 p.11 |
 | 多台雷达 | 各自 IP 不同，经交换机连接（本项目只有一台） | 手册 p.11 |
-| 驱动用的 UDP 端口 | 待核实（livox_ros_driver2 的配置 json） | — |
-| 驱动输出格式 | 待核实：`xfer_format` 0 = PointCloud2，1 = CustomMsg（FAST-LIO 用 1） | — |
-| 驱动的 ROS1 编译方式 | 待核实：仓库自带 `build.sh ROS1`（会切换 package.xml） | — |
+| 驱动用的 UDP 端口 | 雷达端：命令 56100、推送 56200、点云 56300、IMU 56400、日志 56500；主机端各 +1（56101…56501）。示例配置里主机 IP 是 192.168.1.5，本车要改成 192.168.1.50 | livox_ros_driver2 `6b9356c` `config/MID360_config.json` |
+| 驱动输出格式 | `xfer_format` 0 = PointCloud2（代码默认值），1 = CustomMsg（FAST-LIO 要用 1，官方 `msg_MID360.launch` 就是 1） | livox_ros_driver2 `6b9356c` `src/lddc.h:43-44`、`src/livox_ros_driver2.cpp:54` |
+| 驱动的 ROS1 编译方式 | 仓库的 `build.sh ROS1` 做两件事：`cp package_ROS1.xml package.xml`，cmake 加 `-DROS_EDITION=ROS1`；它还会删掉整个工作空间的 build/devel，所以**不直接调用**，由 `tools/setup_thirdparty.sh` 做同样的两件事。驱动从 `/usr/local/lib` 找 `liblivox_lidar_sdk_static.a`（路径写死）。驱动 master（2026-09）需要 SDK v1.3.1，和 SDK v1.2.5 编不过 | `build.sh`、`CMakeLists.txt`；2026-10-21 实测编译 |
 
 ⚠️ 家用路由器常常也是 192.168.1.0/24。如果 Jetson 的 Wi-Fi 也在这个网段，就会和雷达冲突（到雷达的包可能从 Wi-Fi 发出去）。`check_env.sh` 设置了 `LIVOX_IP` 时会检查这一点。真遇到冲突，就用 Livox Viewer 2 把雷达改到别的网段。
 
@@ -56,7 +57,7 @@
 | 支持的方式 | **IEEE 1588-2008（PTPv2）**，雷达作为普通时钟（从时钟），**只支持 UDP/IPv4**；或者 GPS（PPS + GPRMC） | 手册 p.14、p.20 |
 | 时间戳格式 | 64 位整数，单位 ns | 手册 p.14 |
 | 不对时时的时间戳 | 待核实（预计是上电后开始计时） | — |
-| 驱动消息时间戳取自哪里、点云帧 stamp 的含义 | 待核实（预计取自设备时间戳，是帧起始时间） | — |
+| 驱动消息时间戳取自哪里、点云帧 stamp 的含义 | **取自设备时间戳**（ns 转秒）：IMU 是每个包的 `time_stamp`；CustomMsg 的 `header.stamp` = `timebase` = 这一帧的 `base_time`。`base_time` 是不是帧内第一个点的时间仍待实测 | livox_ros_driver2 `6b9356c` `src/lddc.cpp:363-370,483-485` |
 
 由此可知：Jetson 上的 `ptp4l` 必须用 UDP/IPv4 传输（`-4`），不能用默认的二层以太网传输。Jetson 网卡是否支持硬件时间戳待核实，不支持就用软件时间戳（`-S`）。
 P2 验收：`/livox/imu` 的"接收时刻 − stamp" < 5 ms，测量方法见 `docs/01` 的 P2。不能直接拿点云的 stamp 和接收时刻比：10 Hz 下帧时长本身就有约 100 ms。
@@ -68,7 +69,7 @@ P2 验收：`/livox/imu` 的"接收时刻 − stamp" < 5 ms，测量方法见 `d
 | 坐标轴 | 右手系，Z 垂直于底面向上；俯视时 X 指向 M12 接口的对侧，Y 与 X 成右手关系（接口在 −X 一侧） | 手册 p.12 坐标图（接口方向是从图上读出来的，装车时对照实物确认一次） |
 | IMU 在点云坐标系中的位置 | **x = 11.0 mm，y = 23.29 mm，z = −44.12 mm** | 手册 p.15 |
 | IMU 轴向 | 和点云坐标系相同（旋转 = 单位阵） | 手册 p.15 |
-| 驱动 `/livox/imu` 的 frame_id | 待核实（预计是 `livox_frame`，要和 URDF 的 `livox_imu` 对上） | — |
+| 驱动 `/livox/imu` 的 frame_id | **写死为 `livox_frame`**（不受 launch 里 `frame_id` 参数影响），和 URDF 计划的 `livox_imu` 不一致。FAST-LIO 不读 frame_id；怎么处理（打补丁还是让 URDF 适配）在 P2 决定 | livox_ros_driver2 `6b9356c` `src/lddc.cpp:481` |
 
 URDF 写法：`livox_frame → livox_imu` 的平移 = (0.011, 0.02329, −0.04412) m，旋转 = 单位阵。FAST-LIO 的 `extrinsic_T` 是雷达在 IMU 坐标系里的位置，应该等于 (−0.011, −0.02329, 0.04412)。两者要用一致性测试绑定（docs/01 第 1.2 节）。
 
